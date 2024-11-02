@@ -1,10 +1,14 @@
 package main;
 
+import Cards.Card;
+import Cards.Hero;
 import Deck.Decks;
+import Player.Player;
 import checker.Checker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import checker.CheckerConstants;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -15,10 +19,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Random;
+
+import static java.util.Collections.shuffle;
 
 /**
- * The entry point to this homework. It runs the checker that tests your implentation.
+ * The entry point to this homework. It runs the checker that tests your implementation.
  */
 public final class Main {
     /**
@@ -69,25 +77,73 @@ public final class Main {
         Input inputData = objectMapper.readValue(new File(CheckerConstants.TESTS_PATH + filePath1),
                 Input.class);
 
-
-        ArrayNode output = objectMapper.createArrayNode();
-        System.out.println(inputData.toString());
-
-        DecksInput playerOneDecks = inputData.getPlayerOneDecks();
-        DecksInput playerTwoDecks = inputData.getPlayerTwoDecks();
-
-
-//         ObjectNode objectNode = mapper.createObjectNode();
-//         objectNode.put("field_name", "field_value");
-//
-//         ArrayNode arrayNode = mapper.createArrayNode();
-//         arrayNode.add(objectNode);
-//
-//         output.add(arrayNode);
-//         output.add(objectNode);
-
-
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        File outputFile = new File(filePath2);
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
+        ArrayNode output = objectMapper.createArrayNode();
+
+        Player playerOne = new Player(inputData.getPlayerOneDecks());
+        Player playerTwo = new Player(inputData.getPlayerTwoDecks());
+        ArrayList<GameInput> gameInput = inputData.getGames();
+
+        for (GameInput g : gameInput) {
+            ArrayList<ActionsInput> actionsInput = g.getActions();
+
+            playerOne.setHero(new Hero(g.getStartGame().getPlayerOneHero()));
+            playerTwo.setHero(new Hero(g.getStartGame().getPlayerTwoHero()));
+
+            playerOne.setCurrentDeck(playerOne.getDecks().getDecks().get(g.getStartGame().getPlayerOneDeckIdx()));
+            playerTwo.setCurrentDeck(playerTwo.getDecks().getDecks().get(g.getStartGame().getPlayerTwoDeckIdx()));
+
+            int currentPlayer = g.getStartGame().getStartingPlayer();
+
+            Random random = new Random(g.getStartGame().getShuffleSeed());
+            shuffle(playerOne.getCurrentDeck(), random);
+            random = new Random(g.getStartGame().getShuffleSeed());
+            shuffle(playerTwo.getCurrentDeck(), random);
+
+            playerOne.drawCard();
+            playerTwo.drawCard();
+
+            for (ActionsInput a : actionsInput) {
+                ObjectNode objectNode = objectMapper.createObjectNode();
+                objectNode.put("command", a.getCommand());
+                switch (a.getCommand()) {
+                    case "getPlayerDeck":
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            playerOne.printCurrentJSON(objectMapper, objectNode, playerOne.getCurrentDeck());
+                        } else if (a.getPlayerIdx() == 2) {
+                            playerTwo.printCurrentJSON(objectMapper, objectNode, playerTwo.getCurrentDeck());
+                        }
+                        break;
+                    case "getCardsInHand":
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            playerOne.printCurrentJSON(objectMapper, objectNode, playerOne.getHand());
+                        } else if (a.getPlayerIdx() == 2) {
+                            playerTwo.printCurrentJSON(objectMapper, objectNode, playerTwo.getHand());
+                        }
+                        break;
+                    case "getPlayerHero":
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            playerOne.getHero().printHeroJSON(objectNode, objectMapper);
+                        } else if (a.getPlayerIdx() == 2) {
+                            playerTwo.getHero().printHeroJSON(objectNode, objectMapper);
+                        }
+                        break;
+                    case "getPlayerTurn":
+                        objectNode.put("output", currentPlayer);
+                        break;
+                    case "endTurn":
+                        break;
+                    case "placeCard":
+                        break;
+                }
+                output.add(objectNode);
+            }
+        }
         objectWriter.writeValue(new File(filePath2), output);
     }
 }
