@@ -2,7 +2,8 @@ package main;
 
 import Cards.Card;
 import Cards.Hero;
-import Deck.Decks;
+import Deck.Deck;
+import Game.Game;
 import Player.Player;
 import checker.Checker;
 
@@ -82,68 +83,167 @@ public final class Main {
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         ArrayNode output = objectMapper.createArrayNode();
 
-        Player playerOne = new Player(inputData.getPlayerOneDecks());
-        Player playerTwo = new Player(inputData.getPlayerTwoDecks());
+        Player playerOne = new Player(inputData.getPlayerOneDecks(), 1);
+        Player playerTwo = new Player(inputData.getPlayerTwoDecks(), 2);
         ArrayList<GameInput> gameInput = inputData.getGames();
+
 
         for (GameInput g : gameInput) {
             ArrayList<ActionsInput> actionsInput = g.getActions();
+            Game game = new Game(g.getStartGame().getStartingPlayer());
 
             playerOne.setHero(new Hero(g.getStartGame().getPlayerOneHero()));
             playerTwo.setHero(new Hero(g.getStartGame().getPlayerTwoHero()));
 
-            playerOne.setCurrentDeck(playerOne.getDecks().getDecks().get(g.getStartGame().getPlayerOneDeckIdx()));
-            playerTwo.setCurrentDeck(playerTwo.getDecks().getDecks().get(g.getStartGame().getPlayerTwoDeckIdx()));
+            int playerOneDeckIndex = g.getStartGame().getPlayerOneDeckIdx();
+            int playerTwoDeckIndex = g.getStartGame().getPlayerTwoDeckIdx();
 
-            int currentPlayer = g.getStartGame().getStartingPlayer();
+            playerOne.setCurrentDeck(new Deck(playerOne.getDecks(), playerOneDeckIndex));
+            playerTwo.setCurrentDeck(new Deck(playerTwo.getDecks(), playerTwoDeckIndex));
 
             Random random = new Random(g.getStartGame().getShuffleSeed());
-            shuffle(playerOne.getCurrentDeck(), random);
+            shuffle(playerOne.getCurrentDeck().getCards(), random);
             random = new Random(g.getStartGame().getShuffleSeed());
-            shuffle(playerTwo.getCurrentDeck(), random);
+            shuffle(playerTwo.getCurrentDeck().getCards(), random);
 
             playerOne.drawCard();
             playerTwo.drawCard();
 
             for (ActionsInput a : actionsInput) {
                 ObjectNode objectNode = objectMapper.createObjectNode();
-                objectNode.put("command", a.getCommand());
+
                 switch (a.getCommand()) {
-                    case "getPlayerDeck":
-                        objectNode.put("playerIdx", a.getPlayerIdx());
-                        if (a.getPlayerIdx() == 1) {
-                            playerOne.printCurrentJSON(objectMapper, objectNode, playerOne.getCurrentDeck());
-                        } else if (a.getPlayerIdx() == 2) {
-                            playerTwo.printCurrentJSON(objectMapper, objectNode, playerTwo.getCurrentDeck());
+                    case "endPlayerTurn":
+                        boolean endOfRound = game.switchTurn();
+                        if (endOfRound) {
+                            playerOne.drawCard();
+                            playerTwo.drawCard();
+                            playerOne.setMana(playerOne.getMana() + game.getManaPerRound());
+                            playerTwo.setMana(playerTwo.getMana() + game.getManaPerRound());
                         }
-                        break;
-                    case "getCardsInHand":
-                        objectNode.put("playerIdx", a.getPlayerIdx());
-                        if (a.getPlayerIdx() == 1) {
-                            playerOne.printCurrentJSON(objectMapper, objectNode, playerOne.getHand());
-                        } else if (a.getPlayerIdx() == 2) {
-                            playerTwo.printCurrentJSON(objectMapper, objectNode, playerTwo.getHand());
-                        }
-                        break;
-                    case "getPlayerHero":
-                        objectNode.put("playerIdx", a.getPlayerIdx());
-                        if (a.getPlayerIdx() == 1) {
-                            playerOne.getHero().printHeroJSON(objectNode, objectMapper);
-                        } else if (a.getPlayerIdx() == 2) {
-                            playerTwo.getHero().printHeroJSON(objectNode, objectMapper);
-                        }
-                        break;
-                    case "getPlayerTurn":
-                        objectNode.put("output", currentPlayer);
-                        break;
-                    case "endTurn":
                         break;
                     case "placeCard":
+                        int error = 0;
+                        if (game.getCurrentPlayerTurn() == 1) {
+                            error = playerOne.placeCard(a.getHandIdx(), game);
+                        } else {
+                            error = playerTwo.placeCard(a.getHandIdx(), game);
+                        }
+                        if (error == 1) {
+                            objectNode.put("command", a.getCommand());
+                            objectNode.put("handIdx", a.getHandIdx());
+                            objectNode.put("output", "Not enough mana to place card on table.");
+                            output.add(objectNode);
+                        } else if (error == 2) {
+                            objectNode.put("command", a.getCommand());
+                            objectNode.put("handIdx", a.getHandIdx());
+                            objectNode.put("output", "Cannot place card on table since row is full.");
+                            output.add(objectNode);
+                        }
+                        break;
+                    case "getPlayerDeck":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            playerOne.getCurrentDeck().printDeckJSON(objectMapper, objectNode);
+                        } else if (a.getPlayerIdx() == 2) {
+                            playerTwo.getCurrentDeck().printDeckJSON(objectMapper, objectNode);
+                        }
+                        output.add(objectNode);
+                        break;
+                    case "getCardsInHand":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            playerOne.getHand().printDeckJSON(objectMapper, objectNode);
+                        } else if (a.getPlayerIdx() == 2) {
+                            playerTwo.getHand().printDeckJSON(objectMapper, objectNode);
+                        }
+                        output.add(objectNode);
+                        break;
+                    case "getCardsOnTable":
+                        objectNode.put("command", a.getCommand());
+                        ArrayNode tableRow = objectMapper.createArrayNode();
+                        for (ArrayList<Card> row: game.getBoard()) {
+                            ArrayNode tableCol = objectMapper.createArrayNode();
+                            for (Card card: row) {
+                                    ObjectNode cardNode = objectMapper.createObjectNode();
+                                    tableCol.add(card.printCardJSON(cardNode, objectMapper));
+                            }
+                            tableRow.add(tableCol);
+                        }
+                        objectNode.set("output", tableRow);
+                        output.add(objectNode);
+                        break;
+                    case "getPlayerHero":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            playerOne.getHero().printCardJSON(objectNode, objectMapper);
+                        } else if (a.getPlayerIdx() == 2) {
+                            playerTwo.getHero().printCardJSON(objectNode, objectMapper);
+                        }
+                        output.add(objectNode);
+                        break;
+//                    case "getCardAtPosition":
+//                        objectNode.put("command", a.getCommand());
+//                        objectNode.put("x", a.getX());
+//                        objectNode.put("y", a.getY());
+//                        if (game.getBoard().get(a.getX()).size() < a.getY()) {
+//                            objectNode.put("output", "No card available at that position");
+//                        } else {
+//                            game.getBoard().get(a.getX()).get(a.getY()).printCardJSON(objectNode, objectMapper);
+//                        }
+//                        break;
+                    case "getPlayerTurn":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("output", game.getCurrentPlayerTurn());
+                        output.add(objectNode);
+                        break;
+                    case "getPlayerMana":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("playerIdx", a.getPlayerIdx());
+                        if (a.getPlayerIdx() == 1) {
+                            objectNode.put("output", playerOne.getMana());
+                            output.add(objectNode);
+                        } else if (a.getPlayerIdx() == 2) {
+                            objectNode.put("output", playerTwo.getMana());
+                            output.add(objectNode);
+                        }
+                        break;
+                    case "getFrozenCardsOnTable":
+                        objectNode.put("command", a.getCommand());
+                        ArrayNode frozenTable = objectMapper.createArrayNode();
+                        for (ArrayList<Card> row: game.getBoard()) {
+                            for (Card card: row) {
+                                if (card.isFrozen()) {
+                                    ObjectNode cardNode = objectMapper.createObjectNode();
+                                    frozenTable.add(card.printCardJSON(cardNode, objectMapper));
+                                }
+                            }
+                        }
+                        objectNode.set("output", frozenTable);
+                        output.add(objectNode);
+                        break;
+                    case "getTotalGamesPlayed":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("output", playerOne.getGamesPlayed());
+                        output.add(objectNode);
+                        break;
+                    case "getPlayerOneWins":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("output", playerOne.getGamesWon());
+                        output.add(objectNode);
+                        break;
+                    case "getPlayerTwoWins":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("output", playerTwo.getGamesWon());
+                        output.add(objectNode);
                         break;
                 }
-                output.add(objectNode);
             }
         }
         objectWriter.writeValue(new File(filePath2), output);
+        System.out.println();
     }
 }

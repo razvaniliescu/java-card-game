@@ -2,23 +2,41 @@ package Player;
 
 import Cards.Card;
 import Cards.Hero;
-import Deck.Decks;
+import Deck.DeckList;
+import Deck.Deck;
+import Game.Game;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fileio.CardInput;
 import fileio.DecksInput;
-import fileio.StartGameInput;
 
 import java.util.ArrayList;
 
 public class Player {
-    private ArrayList<Card> hand;
-    private Decks decks;
+    private int id;
+    private int mana;
+    private Deck hand;
+    private Deck currentDeck;
+    private DeckList decks;
     private Hero hero;
-    private ArrayList<Card> currentDeck;
     private int gamesWon;
     private int gamesPlayed;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getMana() {
+        return mana;
+    }
+
+    public void setMana(int mana) {
+        this.mana = mana;
+    }
 
     public int getGamesWon() {
         return gamesWon;
@@ -36,19 +54,11 @@ public class Player {
         this.gamesPlayed = gamesPlayed;
     }
 
-    public ArrayList<Card> getHand() {
-        return hand;
-    }
-
-    public void setHand(ArrayList<Card> hand) {
-        this.hand = hand;
-    }
-
-    public Decks getDecks() {
+    public DeckList getDeckList() {
         return decks;
     }
 
-    public void setDecks(Decks decks) {
+    public void setDeckList(DeckList decks) {
         this.decks = decks;
     }
 
@@ -60,41 +70,73 @@ public class Player {
         this.hero = hero;
     }
 
-    public ArrayList<Card> getCurrentDeck() {
+    public Deck getHand() {
+        return hand;
+    }
+
+    public void setHand(Deck hand) {
+        this.hand = hand;
+    }
+
+    public Deck getCurrentDeck() {
         return currentDeck;
     }
 
-    public void setCurrentDeck(ArrayList<Card> currentDeck) {
+    public void setCurrentDeck(Deck currentDeck) {
         this.currentDeck = currentDeck;
     }
 
-    public Player(DecksInput decks) {
-        this.hand = new ArrayList<Card>();
-        this.decks = new Decks(decks);
+    public DeckList getDecks() {
+        return decks;
+    }
+
+    public void setDecks(DeckList decks) {
+        this.decks = decks;
+    }
+
+    public Player(DecksInput decks, int id) {
+        this.hand = new Deck();
+        this.currentDeck = new Deck();
+        this.currentDeck.setSize(decks.getNrCardsInDeck());
+        this.decks = new DeckList(decks);
+        this.mana = 1;
+        this.id = id;
     }
 
     public void drawCard() {
-        Card card = this.currentDeck.get(0);
-        this.currentDeck.remove(0);
-        this.hand.add(card);
+        if (currentDeck.getSize() > 0) {
+            Card card = currentDeck.removeCard();
+            hand.addCard(card);
+        }
     }
 
-    public void printCurrentJSON(ObjectMapper objectMapper, ObjectNode objectNode, ArrayList<Card> currentDeckOrHand) {
-        ArrayNode deck = objectMapper.createArrayNode();
-        for (Card card: currentDeckOrHand) {
-            ObjectNode deckNode = objectMapper.createObjectNode();
-            deckNode.put("mana", card.getMana());
-            deckNode.put("attackDamage", card.getAttackDamage());
-            deckNode.put("health", card.getHealth());
-            deckNode.put("description", card.getDescription());
-            ArrayNode colors = objectMapper.createArrayNode();
-            for (String color: card.getColors()) {
-                colors.add(color);
+    public int placeCard(int HandIndex, Game game) {
+        Card card = hand.getCards().get(HandIndex);
+        if (mana < card.getMana()) {
+            return 1;
+        } else {
+            int cardRow = -1;
+            if (id == 1) {
+                if (card.isTank()) {
+                    cardRow = 2;
+                } else {
+                    cardRow = 3;
+                }
+            } else if (id == 2) {
+                if (card.isTank()) {
+                    cardRow = 1;
+                } else {
+                    cardRow = 0;
+                }
             }
-            deckNode.set("colors", colors);
-            deckNode.put("name", card.getName());
-            deck.add(deckNode);
+            if (game.getBoard().get(cardRow).size() >= 5) {
+                return 1;
+            }
+            hand.getCards().remove(card);
+            hand.setSize(hand.getSize() - 1);
+            game.getBoard().get(cardRow).add(card);
+            mana = mana - card.getMana();
         }
-        objectNode.set("output", deck);
+        return 0;
     }
 }

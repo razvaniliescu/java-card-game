@@ -1,18 +1,15 @@
 package Deck;
 
 import Cards.Card;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.CardInput;
 import fileio.DecksInput;
 
 import java.util.ArrayList;
 
-public class Decks {
+public class DeckList {
     private int nrCardsInDeck;
     private int nrDecks;
-    private ArrayList<ArrayList<Card>> decks;
+    private ArrayList<Deck> decks;
 
     public int getNrCardsInDeck() {
         return nrCardsInDeck;
@@ -30,24 +27,20 @@ public class Decks {
         this.nrDecks = nrDecks;
     }
 
-    public ArrayList<ArrayList<Card>> getDecks() {
+    public ArrayList<Deck> getDecks() {
         return decks;
     }
 
-    public void setDecks(ArrayList<ArrayList<Card>> decks) {
+    public void setDecks(ArrayList<Deck> decks) {
         this.decks = decks;
     }
 
-    public Decks(DecksInput decksInput) {
+    public DeckList(DecksInput decksInput) {
         this.nrCardsInDeck = decksInput.getNrCardsInDeck();
         this.nrDecks = decksInput.getNrDecks();
-        this.decks = new ArrayList<ArrayList<Card>>();
+        this.decks = new ArrayList<Deck>();
         for (ArrayList<CardInput> deck : decksInput.getDecks()) {
-            ArrayList<Card> newDeck = new ArrayList<Card>();
-            for (CardInput card : deck) {
-                Card newCard = new Card(card.getMana(), card.getHealth(), card.getAttackDamage(), card.getDescription(), card.getColors(), card.getName());
-                newDeck.add(newCard);
-            }
+            Deck newDeck = new Deck(deck);
             this.decks.add(newDeck);
         }
     }
