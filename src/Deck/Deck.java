@@ -53,12 +53,6 @@ public class Deck {
         this.size = this.cards.size();
     }
 
-    public Deck(DeckList decks, int index) {
-        this.cards = new ArrayList<>();
-        this.cards.addAll(decks.getDecks().get(index).getCards());
-        this.size = decks.getDecks().get(index).getCards().size();
-    }
-
     public Minion removeCard() {
         Minion card = cards.get(0);
         cards.remove(card);

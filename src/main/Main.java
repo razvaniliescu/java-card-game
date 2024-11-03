@@ -9,7 +9,7 @@ import Cards.Heroes.LordRoyce;
 import Cards.Minion;
 import Deck.Deck;
 import Game.Game;
-import Player.Player;
+import Game.Player;
 import checker.Checker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,9 +87,10 @@ public final class Main {
         File outputFile = new File(filePath2);
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         ArrayNode output = objectMapper.createArrayNode();
-
-        Player playerOne = new Player(inputData.getPlayerOneDecks(), 1);
-        Player playerTwo = new Player(inputData.getPlayerTwoDecks(), 2);
+        DecksInput playerOneDecks = inputData.getPlayerOneDecks();
+        DecksInput playerTwoDecks = inputData.getPlayerTwoDecks();
+        Player playerOne = new Player(playerOneDecks, 1);
+        Player playerTwo = new Player(playerTwoDecks, 2);
         ArrayList<GameInput> gameInput = inputData.getGames();
 
         for (GameInput g : gameInput) {
@@ -105,12 +106,18 @@ public final class Main {
             };
 
             Hero playerTwoHero = switch (g.getStartGame().getPlayerTwoHero().getName()) {
-                case "Lord Royce" -> new LordRoyce(g.getStartGame().getPlayerTwoHero(), 1);
-                case "Empress Thorina" -> new EmpressThorina(g.getStartGame().getPlayerTwoHero(), 1);
-                case "King Mudface" -> new KingMudface(g.getStartGame().getPlayerTwoHero(), 1);
-                case "General Kocioraw" -> new GeneralKocioraw(g.getStartGame().getPlayerTwoHero(), 1);
+                case "Lord Royce" -> new LordRoyce(g.getStartGame().getPlayerTwoHero(), 2);
+                case "Empress Thorina" -> new EmpressThorina(g.getStartGame().getPlayerTwoHero(), 2);
+                case "King Mudface" -> new KingMudface(g.getStartGame().getPlayerTwoHero(), 2);
+                case "General Kocioraw" -> new GeneralKocioraw(g.getStartGame().getPlayerTwoHero(), 2);
                 default -> null;
             };
+
+            playerOne.setMana(1);
+            playerTwo.setMana(1);
+
+            playerOne.getHand().getCards().clear();
+            playerTwo.getHand().getCards().clear();
 
             playerOne.setHero(playerOneHero);
             playerTwo.setHero(playerTwoHero);
@@ -118,8 +125,8 @@ public final class Main {
             int playerOneDeckIndex = g.getStartGame().getPlayerOneDeckIdx();
             int playerTwoDeckIndex = g.getStartGame().getPlayerTwoDeckIdx();
 
-            playerOne.setCurrentDeck(new Deck(playerOne.getDecks(), playerOneDeckIndex));
-            playerTwo.setCurrentDeck(new Deck(playerTwo.getDecks(), playerTwoDeckIndex));
+            playerOne.setCurrentDeck(new Deck(playerOneDecks.getDecks().get(playerOneDeckIndex), 1));
+            playerTwo.setCurrentDeck(new Deck(playerTwoDecks.getDecks().get(playerTwoDeckIndex), 2));
 
             Random random = new Random(g.getStartGame().getShuffleSeed());
             shuffle(playerOne.getCurrentDeck().getCards(), random);

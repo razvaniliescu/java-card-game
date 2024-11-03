@@ -1,10 +1,9 @@
-package Player;
+package Game;
 
 import Cards.Hero;
 import Cards.Minion;
 import Deck.DeckList;
 import Deck.Deck;
-import Game.Game;
 import fileio.DecksInput;
 
 public class Player {
