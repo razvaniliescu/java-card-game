@@ -1,7 +1,8 @@
-package Cards;
+package Cards.SpecialMinions;
 
+import Cards.Minion;
+import Cards.SpecialMinion;
 import fileio.CardInput;
-import Game.Game;
 
 public class TheCursedOne extends SpecialMinion {
     public TheCursedOne(CardInput card, int playerIdx) {

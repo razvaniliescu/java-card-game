@@ -2,6 +2,10 @@ package main;
 
 import Cards.Card;
 import Cards.Hero;
+import Cards.Heroes.EmpressThorina;
+import Cards.Heroes.GeneralKocioraw;
+import Cards.Heroes.KingMudface;
+import Cards.Heroes.LordRoyce;
 import Cards.Minion;
 import Deck.Deck;
 import Game.Game;
@@ -92,8 +96,24 @@ public final class Main {
             ArrayList<ActionsInput> actionsInput = g.getActions();
             Game game = new Game(g.getStartGame().getStartingPlayer(), playerOne, playerTwo);
 
-            playerOne.setHero(new Hero(g.getStartGame().getPlayerOneHero(), 1));
-            playerTwo.setHero(new Hero(g.getStartGame().getPlayerTwoHero(), 2));
+            Hero playerOneHero = switch (g.getStartGame().getPlayerOneHero().getName()) {
+                case "Lord Royce" -> new LordRoyce(g.getStartGame().getPlayerOneHero(), 1);
+                case "Empress Thorina" -> new EmpressThorina(g.getStartGame().getPlayerOneHero(), 1);
+                case "King Mudface" -> new KingMudface(g.getStartGame().getPlayerOneHero(), 1);
+                case "General Kocioraw" -> new GeneralKocioraw(g.getStartGame().getPlayerOneHero(), 1);
+                default -> null;
+            };
+
+            Hero playerTwoHero = switch (g.getStartGame().getPlayerTwoHero().getName()) {
+                case "Lord Royce" -> new LordRoyce(g.getStartGame().getPlayerTwoHero(), 1);
+                case "Empress Thorina" -> new EmpressThorina(g.getStartGame().getPlayerTwoHero(), 1);
+                case "King Mudface" -> new KingMudface(g.getStartGame().getPlayerTwoHero(), 1);
+                case "General Kocioraw" -> new GeneralKocioraw(g.getStartGame().getPlayerTwoHero(), 1);
+                default -> null;
+            };
+
+            playerOne.setHero(playerOneHero);
+            playerTwo.setHero(playerTwoHero);
 
             int playerOneDeckIndex = g.getStartGame().getPlayerOneDeckIdx();
             int playerTwoDeckIndex = g.getStartGame().getPlayerTwoDeckIdx();
@@ -226,6 +246,24 @@ public final class Main {
                                 objectNode.put("gameEnded", "Player one killed the enemy hero.");
                                 output.add(objectNode);
                             }
+                        }
+                        break;
+                    case "useHeroAbility":
+                        error = game.useHeroAbility(a.getAffectedRow());
+                        if (error != 0) {
+                            objectNode.put("command", a.getCommand());
+                            objectNode.put("affectedRow", a.getAffectedRow());
+                            switch (error) {
+                                case 1: objectNode.put("error", "Not enough mana to use hero's ability.");
+                                    break;
+                                case 2: objectNode.put("error", "Hero has already attacked this turn.");
+                                    break;
+                                case 3: objectNode.put("error", "Selected row does not belong to the enemy.");
+                                    break;
+                                case 4: objectNode.put("error", "Selected row does not belong to the current player.");
+                                    break;
+                            }
+                            output.add(objectNode);
                         }
                         break;
                     case "getPlayerDeck":

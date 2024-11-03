@@ -1,6 +1,10 @@
 package Deck;
 
 import Cards.*;
+import Cards.SpecialMinions.Disciple;
+import Cards.SpecialMinions.Miraj;
+import Cards.SpecialMinions.TheCursedOne;
+import Cards.SpecialMinions.TheRipper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;

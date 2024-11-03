@@ -1,8 +1,10 @@
-package Cards;
+package Cards.SpecialMinions;
 
+import Cards.Minion;
+import Cards.SpecialMinion;
 import fileio.CardInput;
 
-public class TheRipper extends SpecialMinion{
+public class TheRipper extends SpecialMinion {
     public TheRipper(CardInput card, int playerIdx) {
         super(card, playerIdx);
         setFrontRow(true);

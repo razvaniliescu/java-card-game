@@ -18,6 +18,15 @@ public class Card {
     private String name;
     private boolean frozen;
     private int playerIdx;
+    private boolean attackedThisTurn;
+
+    public boolean hasAttackedThisTurn() {
+        return attackedThisTurn;
+    }
+
+    public void setAttackedThisTurn(boolean hasAttackedThisTurn) {
+        this.attackedThisTurn = hasAttackedThisTurn;
+    }
 
     public int getPlayerIdx() {
         return playerIdx;

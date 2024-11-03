@@ -12,4 +12,6 @@ public class Hero extends Card {
         super(hero, playerIdx);
         setHealth(30);
     }
+
+    public void ability(ArrayList<Minion> row) {}
 }

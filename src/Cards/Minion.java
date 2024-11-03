@@ -4,15 +4,6 @@ import fileio.CardInput;
 
 public class Minion extends Card {
     private boolean frontRow;
-    private boolean attackedThisTurn;
-
-    public boolean hasAttackedThisTurn() {
-        return attackedThisTurn;
-    }
-
-    public void setAttackedThisTurn(boolean hasAttackedThisTurn) {
-        this.attackedThisTurn = hasAttackedThisTurn;
-    }
 
     public boolean isFrontRow() {
         return frontRow;

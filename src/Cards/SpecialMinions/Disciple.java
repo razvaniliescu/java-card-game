@@ -1,5 +1,7 @@
-package Cards;
+package Cards.SpecialMinions;
 
+import Cards.Minion;
+import Cards.SpecialMinion;
 import fileio.CardInput;
 
 public class Disciple extends SpecialMinion {

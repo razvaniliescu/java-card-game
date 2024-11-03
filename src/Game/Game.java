@@ -1,6 +1,11 @@
 package Game;
 
 import Cards.*;
+import Cards.Heroes.EmpressThorina;
+import Cards.Heroes.GeneralKocioraw;
+import Cards.Heroes.KingMudface;
+import Cards.Heroes.LordRoyce;
+import Cards.SpecialMinions.Disciple;
 import fileio.Coordinates;
 import Player.Player;
 
@@ -94,6 +99,7 @@ public class Game {
                 card.setFrozen(false);
                 card.setAttackedThisTurn(false);
             }
+            playerOne.getHero().setAttackedThisTurn(false);
             currentPlayerTurn = 2;
         } else if (currentPlayerTurn == 2) {
             for (Minion card : board.get(0)) {
@@ -104,6 +110,7 @@ public class Game {
                 card.setFrozen(false);
                 card.setAttackedThisTurn(false);
             }
+            playerTwo.getHero().setAttackedThisTurn(false);
             currentPlayerTurn = 1;
         }
         if (turnsThisRound == 1) {
@@ -239,6 +246,46 @@ public class Game {
                 playerTwo.win();
             }
         }
+        return 0;
+    }
+
+    public int useHeroAbility(int row) {
+        Player player = switch (currentPlayerTurn) {
+            case 1 -> playerOne;
+            case 2 -> playerTwo;
+            default -> null;
+        };
+        Hero hero = player.getHero();
+        if (player.getMana() < hero.getMana()) {
+            return 1;
+        }
+        if (hero.hasAttackedThisTurn()) {
+            return 2;
+        }
+        if ((hero instanceof LordRoyce) || (hero instanceof EmpressThorina)) {
+            if (currentPlayerTurn == 1) {
+                if (row == 2 || row == 3) {
+                    return 3;
+                }
+            } else if (currentPlayerTurn == 2) {
+                if (row == 0 || row == 1) {
+                    return 3;
+                }
+            }
+        } else if ((hero instanceof KingMudface) || (hero instanceof GeneralKocioraw)) {
+            if (currentPlayerTurn == 1) {
+                if (row == 0 || row == 1) {
+                    return 4;
+                }
+            } else if (currentPlayerTurn == 2) {
+                if (row == 2 || row == 3) {
+                    return 4;
+                }
+            }
+        }
+        hero.ability(getBoard().get(row));
+        player.setMana(player.getMana() - hero.getMana());
+        hero.setAttackedThisTurn(true);
         return 0;
     }
 }
