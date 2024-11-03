@@ -249,11 +249,12 @@ public class Game {
     }
 
     public int useHeroAbility(int row) {
-        Player player = switch (currentPlayerTurn) {
-            case 1 -> playerOne;
-            case 2 -> playerTwo;
-            default -> null;
-        };
+        Player player = null;
+        if (currentPlayerTurn == 1) {
+            player = playerOne;
+        } else if (currentPlayerTurn == 2) {
+            player = playerTwo;
+        }
         Hero hero = player.getHero();
         if (player.getMana() < hero.getMana()) {
             return 1;

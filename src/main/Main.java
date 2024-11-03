@@ -97,30 +97,40 @@ public final class Main {
             ArrayList<ActionsInput> actionsInput = g.getActions();
             Game game = new Game(g.getStartGame().getStartingPlayer(), playerOne, playerTwo);
 
-            Hero playerOneHero = switch (g.getStartGame().getPlayerOneHero().getName()) {
-                case "Lord Royce" -> new LordRoyce(g.getStartGame().getPlayerOneHero(), 1);
-                case "Empress Thorina" -> new EmpressThorina(g.getStartGame().getPlayerOneHero(), 1);
-                case "King Mudface" -> new KingMudface(g.getStartGame().getPlayerOneHero(), 1);
-                case "General Kocioraw" -> new GeneralKocioraw(g.getStartGame().getPlayerOneHero(), 1);
-                default -> null;
+
+            Hero playerOneHero = null;
+            Hero playerTwoHero = null;
+
+            switch (g.getStartGame().getPlayerOneHero().getName()) {
+                case "Lord Royce": playerOneHero =  new LordRoyce(g.getStartGame().getPlayerOneHero(), 1);
+                break;
+                case "Empress Thorina": playerOneHero = new EmpressThorina(g.getStartGame().getPlayerOneHero(), 1);
+                break;
+                case "King Mudface": playerOneHero = new KingMudface(g.getStartGame().getPlayerOneHero(), 1);
+                break;
+                case "General Kocioraw": playerOneHero = new GeneralKocioraw(g.getStartGame().getPlayerOneHero(), 1);
+                break;
             };
 
-            Hero playerTwoHero = switch (g.getStartGame().getPlayerTwoHero().getName()) {
-                case "Lord Royce" -> new LordRoyce(g.getStartGame().getPlayerTwoHero(), 2);
-                case "Empress Thorina" -> new EmpressThorina(g.getStartGame().getPlayerTwoHero(), 2);
-                case "King Mudface" -> new KingMudface(g.getStartGame().getPlayerTwoHero(), 2);
-                case "General Kocioraw" -> new GeneralKocioraw(g.getStartGame().getPlayerTwoHero(), 2);
-                default -> null;
+            switch (g.getStartGame().getPlayerTwoHero().getName()) {
+                case "Lord Royce": playerTwoHero =  new LordRoyce(g.getStartGame().getPlayerTwoHero(), 1);
+                    break;
+                case "Empress Thorina": playerTwoHero = new EmpressThorina(g.getStartGame().getPlayerTwoHero(), 1);
+                    break;
+                case "King Mudface": playerTwoHero = new KingMudface(g.getStartGame().getPlayerTwoHero(), 1);
+                    break;
+                case "General Kocioraw": playerTwoHero = new GeneralKocioraw(g.getStartGame().getPlayerTwoHero(), 1);
+                    break;
             };
+
+            playerOne.setHero(playerOneHero);
+            playerTwo.setHero(playerTwoHero);
 
             playerOne.setMana(1);
             playerTwo.setMana(1);
 
             playerOne.getHand().getCards().clear();
             playerTwo.getHand().getCards().clear();
-
-            playerOne.setHero(playerOneHero);
-            playerTwo.setHero(playerTwoHero);
 
             int playerOneDeckIndex = g.getStartGame().getPlayerOneDeckIdx();
             int playerTwoDeckIndex = g.getStartGame().getPlayerTwoDeckIdx();

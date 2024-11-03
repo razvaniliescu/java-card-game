@@ -39,14 +39,24 @@ public class Deck {
     public Deck(ArrayList<CardInput> cards, int playerIdx) {
         this.cards = new ArrayList<>();
         for (CardInput card : cards) {
-            Minion newCard = switch (card.getName()) {
-                case "Sentinel", "Berserker" -> new Minion(card, playerIdx);
-                case "Goliath", "Warden" -> new Tank(card, playerIdx);
-                case "Miraj" -> new Miraj(card, playerIdx);
-                case "The Cursed One" -> new TheCursedOne(card, playerIdx);
-                case "Disciple" -> new Disciple(card, playerIdx);
-                case "The Ripper" -> new TheRipper(card, playerIdx);
-                default -> null;
+            Minion newCard = null;
+            switch (card.getName()) {
+                case "Sentinel":
+                case "Berserker":
+                    newCard = new Minion(card, playerIdx);
+                break;
+                case "Goliath":
+                case "Warden":
+                    newCard = new Tank(card, playerIdx);
+                break;
+                case "Miraj": newCard = new Miraj(card, playerIdx);
+                break;
+                case "The Cursed One": newCard = new TheCursedOne(card, playerIdx);
+                break;
+                case "Disciple": newCard = new Disciple(card, playerIdx);
+                break;
+                case "The Ripper": newCard = new TheRipper(card, playerIdx);
+                break;
             };
             this.cards.add(newCard);
         }
