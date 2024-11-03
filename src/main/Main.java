@@ -2,6 +2,7 @@ package main;
 
 import Cards.Card;
 import Cards.Hero;
+import Cards.Minion;
 import Deck.Deck;
 import Game.Game;
 import Player.Player;
@@ -87,13 +88,12 @@ public final class Main {
         Player playerTwo = new Player(inputData.getPlayerTwoDecks(), 2);
         ArrayList<GameInput> gameInput = inputData.getGames();
 
-
         for (GameInput g : gameInput) {
             ArrayList<ActionsInput> actionsInput = g.getActions();
-            Game game = new Game(g.getStartGame().getStartingPlayer());
+            Game game = new Game(g.getStartGame().getStartingPlayer(), playerOne, playerTwo);
 
-            playerOne.setHero(new Hero(g.getStartGame().getPlayerOneHero()));
-            playerTwo.setHero(new Hero(g.getStartGame().getPlayerTwoHero()));
+            playerOne.setHero(new Hero(g.getStartGame().getPlayerOneHero(), 1));
+            playerTwo.setHero(new Hero(g.getStartGame().getPlayerTwoHero(), 2));
 
             int playerOneDeckIndex = g.getStartGame().getPlayerOneDeckIdx();
             int playerTwoDeckIndex = g.getStartGame().getPlayerTwoDeckIdx();
@@ -111,7 +111,9 @@ public final class Main {
 
             for (ActionsInput a : actionsInput) {
                 ObjectNode objectNode = objectMapper.createObjectNode();
-
+                int error = 0;
+                Coordinates cardAttacker = null;
+                Coordinates cardAttacked = null;
                 switch (a.getCommand()) {
                     case "endPlayerTurn":
                         boolean endOfRound = game.switchTurn();
@@ -123,22 +125,107 @@ public final class Main {
                         }
                         break;
                     case "placeCard":
-                        int error = 0;
                         if (game.getCurrentPlayerTurn() == 1) {
                             error = playerOne.placeCard(a.getHandIdx(), game);
                         } else {
                             error = playerTwo.placeCard(a.getHandIdx(), game);
                         }
-                        if (error == 1) {
+                        if (error != 0) {
                             objectNode.put("command", a.getCommand());
                             objectNode.put("handIdx", a.getHandIdx());
-                            objectNode.put("output", "Not enough mana to place card on table.");
+                            switch (error) {
+                                case 1: objectNode.put("error", "Not enough mana to place card on table.");
+                                break;
+                                case 2: objectNode.put("error", "Cannot place card on table since row is full.");
+                                break;
+                            }
                             output.add(objectNode);
-                        } else if (error == 2) {
+                        }
+                        break;
+                    case "cardUsesAttack":
+                        cardAttacker = a.getCardAttacker();
+                        cardAttacked = a.getCardAttacked();
+                        error = game.useAttack(cardAttacker, cardAttacked);
+                        if (error != 0) {
                             objectNode.put("command", a.getCommand());
-                            objectNode.put("handIdx", a.getHandIdx());
-                            objectNode.put("output", "Cannot place card on table since row is full.");
+                            ObjectNode coordNodeAttacker = objectMapper.createObjectNode();
+                            coordNodeAttacker.put("x", cardAttacker.getX());
+                            coordNodeAttacker.put("y", cardAttacker.getY());
+                            objectNode.set("cardAttacker", coordNodeAttacker);
+                            ObjectNode coordNodeAttacked = objectMapper.createObjectNode();
+                            coordNodeAttacked.put("x", cardAttacked.getX());
+                            coordNodeAttacked.put("y", cardAttacked.getY());
+                            objectNode.set("cardAttacked", coordNodeAttacked);
+                            switch (error) {
+                                case 1: objectNode.put("error", "Attacked card does not belong to the enemy.");
+                                break;
+                                case 2: objectNode.put("error", "Attacker card has already attacked this turn.");
+                                break;
+                                case 3: objectNode.put("error", "Attacker card is frozen.");
+                                break;
+                                case 4: objectNode.put("error", "Attacked card is not of type 'Tank'.");
+                                break;
+                            }
                             output.add(objectNode);
+                        }
+                        break;
+                    case "cardUsesAbility":
+                        cardAttacker = a.getCardAttacker();
+                        cardAttacked = a.getCardAttacked();
+                        error = game.useAbility(cardAttacker, cardAttacked);
+                        if (error != 0) {
+                            objectNode.put("command", a.getCommand());
+                            ObjectNode coordNodeAttacker = objectMapper.createObjectNode();
+                            coordNodeAttacker.put("x", cardAttacker.getX());
+                            coordNodeAttacker.put("y", cardAttacker.getY());
+                            objectNode.set("cardAttacker", coordNodeAttacker);
+                            ObjectNode coordNodeAttacked = objectMapper.createObjectNode();
+                            coordNodeAttacked.put("x", cardAttacked.getX());
+                            coordNodeAttacked.put("y", cardAttacked.getY());
+                            objectNode.set("cardAttacked", coordNodeAttacked);
+                            switch (error) {
+                                case 1: objectNode.put("error", "Attacker card is frozen.");
+                                    break;
+                                case 2: objectNode.put("error", "Attacker card has already attacked this turn.");
+                                    break;
+                                case 3: objectNode.put("error", "Attacked card does not belong to the current player.");
+                                    break;
+                                case 4: objectNode.put("error", "Attacked card does not belong to the enemy.");
+                                    break;
+                                case 5: objectNode.put("error", "Attacked card is not of type 'Tank'.");
+                                    break;
+                            }
+                            output.add(objectNode);
+                        }
+                        break;
+                    case "useAttackHero":
+                        cardAttacker = a.getCardAttacker();
+                        error = game.attackHero(cardAttacker);
+                        if (error != 0) {
+                            objectNode.put("command", a.getCommand());
+                            ObjectNode coordNodeAttacker = objectMapper.createObjectNode();
+                            coordNodeAttacker.put("x", cardAttacker.getX());
+                            coordNodeAttacker.put("y", cardAttacker.getY());
+                            objectNode.set("cardAttacker", coordNodeAttacker);
+                            switch (error) {
+                                case 1: objectNode.put("error", "Attacker card is frozen.");
+                                    output.add(objectNode);
+                                    break;
+                                case 2: objectNode.put("error", "Attacker card has already attacked this turn.");
+                                    output.add(objectNode);
+                                    break;
+                                case 3: objectNode.put("error", "Attacked card is not of type 'Tank'.");
+                                    output.add(objectNode);
+                                    break;
+                            }
+                        } else {
+                            if (playerOne.getHero().getHealth() <= 0) {
+                                objectNode.put("gameEnded", "Player two killed the enemy hero.");
+                                output.add(objectNode);
+                            } else if (playerTwo.getHero().getHealth() <= 0) {
+                                objectNode.put("gameEnded", "Player one killed the enemy hero.");
+                                output.add(objectNode);
+                            }
                         }
                         break;
                     case "getPlayerDeck":
@@ -164,7 +251,7 @@ public final class Main {
                     case "getCardsOnTable":
                         objectNode.put("command", a.getCommand());
                         ArrayNode tableRow = objectMapper.createArrayNode();
-                        for (ArrayList<Card> row: game.getBoard()) {
+                        for (ArrayList<Minion> row: game.getBoard()) {
                             ArrayNode tableCol = objectMapper.createArrayNode();
                             for (Card card: row) {
                                     ObjectNode cardNode = objectMapper.createObjectNode();
@@ -185,16 +272,18 @@ public final class Main {
                         }
                         output.add(objectNode);
                         break;
-//                    case "getCardAtPosition":
-//                        objectNode.put("command", a.getCommand());
-//                        objectNode.put("x", a.getX());
-//                        objectNode.put("y", a.getY());
-//                        if (game.getBoard().get(a.getX()).size() < a.getY()) {
-//                            objectNode.put("output", "No card available at that position");
-//                        } else {
-//                            game.getBoard().get(a.getX()).get(a.getY()).printCardJSON(objectNode, objectMapper);
-//                        }
-//                        break;
+                    case "getCardAtPosition":
+                        objectNode.put("command", a.getCommand());
+                        objectNode.put("x", a.getX());
+                        objectNode.put("y", a.getY());
+                        if (game.getBoard().get(a.getX()).isEmpty() || game.getBoard().get(a.getX()).size() < a.getY()) {
+                            objectNode.put("output", "No card available at that position.");
+                            output.add(objectNode);
+                        } else {
+                            game.getBoard().get(a.getX()).get(a.getY()).printCardJSON(objectNode, objectMapper);
+                            output.add(objectNode);
+                        }
+                        break;
                     case "getPlayerTurn":
                         objectNode.put("command", a.getCommand());
                         objectNode.put("output", game.getCurrentPlayerTurn());
@@ -214,7 +303,7 @@ public final class Main {
                     case "getFrozenCardsOnTable":
                         objectNode.put("command", a.getCommand());
                         ArrayNode frozenTable = objectMapper.createArrayNode();
-                        for (ArrayList<Card> row: game.getBoard()) {
+                        for (ArrayList<Minion> row: game.getBoard()) {
                             for (Card card: row) {
                                 if (card.isFrozen()) {
                                     ObjectNode cardNode = objectMapper.createObjectNode();

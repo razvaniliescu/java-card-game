@@ -1,6 +1,6 @@
 package Deck;
 
-import Cards.Card;
+import Cards.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,14 +9,14 @@ import fileio.CardInput;
 import java.util.ArrayList;
 
 public class Deck {
-    private ArrayList<Card> cards;
+    private ArrayList<Minion> cards;
     private int size;
 
-    public ArrayList<Card> getCards() {
+    public ArrayList<Minion> getCards() {
         return cards;
     }
 
-    public void setCards(ArrayList<Card> cards) {
+    public void setCards(ArrayList<Minion> cards) {
         this.cards = cards;
     }
 
@@ -32,10 +32,18 @@ public class Deck {
         cards = new ArrayList<>();
     }
 
-    public Deck(ArrayList<CardInput> cards) {
+    public Deck(ArrayList<CardInput> cards, int playerIdx) {
         this.cards = new ArrayList<>();
         for (CardInput card : cards) {
-            Card newCard = new Card(card);
+            Minion newCard = switch (card.getName()) {
+                case "Sentinel", "Berserker" -> new Minion(card, playerIdx);
+                case "Goliath", "Warden" -> new Tank(card, playerIdx);
+                case "Miraj" -> new Miraj(card, playerIdx);
+                case "The Cursed One" -> new TheCursedOne(card, playerIdx);
+                case "Disciple" -> new Disciple(card, playerIdx);
+                case "The Ripper" -> new TheRipper(card, playerIdx);
+                default -> null;
+            };
             this.cards.add(newCard);
         }
         this.size = this.cards.size();
@@ -47,14 +55,14 @@ public class Deck {
         this.size = decks.getDecks().get(index).getCards().size();
     }
 
-    public Card removeCard() {
-        Card card = cards.get(0);
+    public Minion removeCard() {
+        Minion card = cards.get(0);
         cards.remove(card);
         size--;
         return card;
     }
 
-    public void addCard(Card card) {
+    public void addCard(Minion card) {
         cards.add(card);
         size++;
     }

@@ -35,12 +35,12 @@ public class DeckList {
         this.decks = decks;
     }
 
-    public DeckList(DecksInput decksInput) {
+    public DeckList(DecksInput decksInput, int playerIdx) {
         this.nrCardsInDeck = decksInput.getNrCardsInDeck();
         this.nrDecks = decksInput.getNrDecks();
         this.decks = new ArrayList<Deck>();
         for (ArrayList<CardInput> deck : decksInput.getDecks()) {
-            Deck newDeck = new Deck(deck);
+            Deck newDeck = new Deck(deck, playerIdx);
             this.decks.add(newDeck);
         }
     }

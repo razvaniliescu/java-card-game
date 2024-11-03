@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.CardInput;
+import Game.Game;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -15,15 +16,15 @@ public class Card {
     private String description;
     private ArrayList<String> colors;
     private String name;
-    private boolean tank;
     private boolean frozen;
+    private int playerIdx;
 
-    public boolean isTank() {
-        return tank;
+    public int getPlayerIdx() {
+        return playerIdx;
     }
 
-    public void setTank(boolean tank) {
-        this.tank = tank;
+    public void setPlayerIdx(int playerIdx) {
+        this.playerIdx = playerIdx;
     }
 
     public int getMana() {
@@ -82,7 +83,7 @@ public class Card {
         this.frozen = frozen;
     }
 
-    public Card(CardInput card) {
+    public Card(CardInput card, int playerIdx) {
         this.mana = card.getMana();
         this.health = card.getHealth();
         this.attackDamage = card.getAttackDamage();
@@ -90,7 +91,7 @@ public class Card {
         this.colors = card.getColors();
         this.name = card.getName();
         this.frozen = false;
-        this.tank = Objects.equals(name, "Goliath") || Objects.equals(name, "Warden") || Objects.equals(name, "The Ripper") || Objects.equals(name, "Miraj");
+        this.playerIdx = playerIdx;
     }
 
     public ObjectNode printCardJSON(ObjectNode objectNode, ObjectMapper objectMapper) {

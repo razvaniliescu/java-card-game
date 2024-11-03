@@ -1,19 +1,14 @@
 package Player;
 
-import Cards.Card;
 import Cards.Hero;
+import Cards.Minion;
 import Deck.DeckList;
 import Deck.Deck;
 import Game.Game;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.DecksInput;
 
-import java.util.ArrayList;
-
 public class Player {
-    private int id;
+    private int playerIdx;
     private int mana;
     private Deck hand;
     private Deck currentDeck;
@@ -22,12 +17,12 @@ public class Player {
     private int gamesWon;
     private int gamesPlayed;
 
-    public int getId() {
-        return id;
+    public int getPlayerIdx() {
+        return playerIdx;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setPlayerIdx(int playerIdx) {
+        this.playerIdx = playerIdx;
     }
 
     public int getMana() {
@@ -94,43 +89,43 @@ public class Player {
         this.decks = decks;
     }
 
-    public Player(DecksInput decks, int id) {
+    public Player(DecksInput decks, int playerIdx) {
         this.hand = new Deck();
         this.currentDeck = new Deck();
         this.currentDeck.setSize(decks.getNrCardsInDeck());
-        this.decks = new DeckList(decks);
+        this.decks = new DeckList(decks, playerIdx);
         this.mana = 1;
-        this.id = id;
+        this.playerIdx = playerIdx;
     }
 
     public void drawCard() {
         if (currentDeck.getSize() > 0) {
-            Card card = currentDeck.removeCard();
+            Minion card = currentDeck.removeCard();
             hand.addCard(card);
         }
     }
 
     public int placeCard(int HandIndex, Game game) {
-        Card card = hand.getCards().get(HandIndex);
+        Minion card = hand.getCards().get(HandIndex);
         if (mana < card.getMana()) {
             return 1;
         } else {
             int cardRow = -1;
-            if (id == 1) {
-                if (card.isTank()) {
+            if (playerIdx == 1) {
+                if (card.isFrontRow()) {
                     cardRow = 2;
                 } else {
                     cardRow = 3;
                 }
-            } else if (id == 2) {
-                if (card.isTank()) {
+            } else if (playerIdx == 2) {
+                if (card.isFrontRow()) {
                     cardRow = 1;
                 } else {
                     cardRow = 0;
                 }
             }
             if (game.getBoard().get(cardRow).size() >= 5) {
-                return 1;
+                return 2;
             }
             hand.getCards().remove(card);
             hand.setSize(hand.getSize() - 1);
@@ -138,5 +133,14 @@ public class Player {
             mana = mana - card.getMana();
         }
         return 0;
+    }
+
+    public void win() {
+        gamesWon++;
+        gamesPlayed++;
+    }
+
+    public void lose() {
+        gamesPlayed++;
     }
 }
