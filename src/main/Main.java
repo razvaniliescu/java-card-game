@@ -1,22 +1,14 @@
 package main;
 
-import Cards.Card;
-import Cards.Hero;
-import Cards.Heroes.EmpressThorina;
-import Cards.Heroes.GeneralKocioraw;
-import Cards.Heroes.KingMudface;
-import Cards.Heroes.LordRoyce;
-import Cards.Minion;
-import Deck.Deck;
-import Game.Game;
-import Game.Player;
-import Output.Debug;
-import Output.Error;
+import deck.Deck;
+import game.Game;
+import game.Player;
+import output.Debug;
+import output.Error;
 import checker.Checker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import checker.CheckerConstants;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -85,7 +77,6 @@ public final class Main {
         Input inputData = objectMapper.readValue(new File(CheckerConstants.TESTS_PATH + filePath1),
                 Input.class);
 
-        File outputFile = new File(filePath2);
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         ArrayNode output = objectMapper.createArrayNode();
 
@@ -96,41 +87,12 @@ public final class Main {
         Player playerTwo = new Player(playerTwoDecks, 2);
         ArrayList<GameInput> gameInput = inputData.getGames();
 
-        Error errorOutput = new Error(output, objectMapper);
-        Debug debugOutput = new Debug(output, objectMapper);
-
         for (GameInput g : gameInput) {
             ArrayList<ActionsInput> actionsInput = g.getActions();
             Game game = new Game(g.getStartGame().getStartingPlayer(), playerOne, playerTwo);
 
-
-            Hero playerOneHero = null;
-            Hero playerTwoHero = null;
-
-            switch (g.getStartGame().getPlayerOneHero().getName()) {
-                case "Lord Royce": playerOneHero =  new LordRoyce(g.getStartGame().getPlayerOneHero(), 1);
-                break;
-                case "Empress Thorina": playerOneHero = new EmpressThorina(g.getStartGame().getPlayerOneHero(), 1);
-                break;
-                case "King Mudface": playerOneHero = new KingMudface(g.getStartGame().getPlayerOneHero(), 1);
-                break;
-                case "General Kocioraw": playerOneHero = new GeneralKocioraw(g.getStartGame().getPlayerOneHero(), 1);
-                break;
-            }
-
-            switch (g.getStartGame().getPlayerTwoHero().getName()) {
-                case "Lord Royce": playerTwoHero =  new LordRoyce(g.getStartGame().getPlayerTwoHero(), 1);
-                    break;
-                case "Empress Thorina": playerTwoHero = new EmpressThorina(g.getStartGame().getPlayerTwoHero(), 1);
-                    break;
-                case "King Mudface": playerTwoHero = new KingMudface(g.getStartGame().getPlayerTwoHero(), 1);
-                    break;
-                case "General Kocioraw": playerTwoHero = new GeneralKocioraw(g.getStartGame().getPlayerTwoHero(), 1);
-                    break;
-            }
-
-            playerOne.setHero(playerOneHero);
-            playerTwo.setHero(playerTwoHero);
+            game.initHero(g.getStartGame().getPlayerOneHero(), playerOne);
+            game.initHero(g.getStartGame().getPlayerTwoHero(), playerTwo);
 
             playerOne.setMana(1);
             playerTwo.setMana(1);
@@ -154,6 +116,8 @@ public final class Main {
 
             for (ActionsInput a : actionsInput) {
                 ObjectNode objectNode = objectMapper.createObjectNode();
+                Error errorOutput = new Error(output, objectMapper, objectNode);
+                Debug debugOutput = new Debug(output, objectMapper, objectNode, game);
                 int error;
                 Coordinates cardAttacker;
                 Coordinates cardAttacked;
@@ -174,7 +138,7 @@ public final class Main {
                             error = playerTwo.placeCard(a.getHandIdx(), game);
                         }
                         if (error != 0) {
-                            errorOutput.placeCardError(objectNode, error, a.getHandIdx());
+                            errorOutput.placeCardError(error, a.getHandIdx());
                         }
                         break;
                     case "cardUsesAttack":
@@ -182,7 +146,7 @@ public final class Main {
                         cardAttacked = a.getCardAttacked();
                         error = game.useAttack(cardAttacker, cardAttacked);
                         if (error != 0) {
-                            errorOutput.cardUsesAttackError(objectNode, error, cardAttacker, cardAttacked);
+                            errorOutput.cardUsesAttackError(error, cardAttacker, cardAttacked);
                         }
                         break;
                     case "cardUsesAbility":
@@ -190,14 +154,14 @@ public final class Main {
                         cardAttacked = a.getCardAttacked();
                         error = game.useAbility(cardAttacker, cardAttacked);
                         if (error != 0) {
-                            errorOutput.cardUsesAbilityError(objectNode, error, cardAttacker, cardAttacked);
+                            errorOutput.cardUsesAbilityError(error, cardAttacker, cardAttacked);
                         }
                         break;
                     case "useAttackHero":
                         cardAttacker = a.getCardAttacker();
                         error = game.attackHero(cardAttacker);
                         if (error != 0) {
-                            errorOutput.useAttackHeroError(objectNode, error, cardAttacker);
+                            errorOutput.useAttackHeroError(error, cardAttacker);
                         } else {
                             if (playerOne.getHero().getHealth() <= 0) {
                                 objectNode.put("gameEnded", "Player two killed the enemy hero.");
@@ -211,46 +175,47 @@ public final class Main {
                     case "useHeroAbility":
                         error = game.useHeroAbility(a.getAffectedRow());
                         if (error != 0) {
-                            errorOutput.useHeroAbilityError(objectNode, error, a.getAffectedRow());
+                            errorOutput.useHeroAbilityError(error, a.getAffectedRow());
                         }
                         break;
                     case "getPlayerDeck":
-                        debugOutput.getPlayerDeck(objectNode, a.getPlayerIdx(), game);
+                        debugOutput.getPlayerDeck(a.getPlayerIdx());
                         break;
                     case "getCardsInHand":
-                        debugOutput.getCardsInHand(objectNode, a.getPlayerIdx(), game);
+                        debugOutput.getCardsInHand(a.getPlayerIdx());
                         break;
                     case "getCardsOnTable":
-                        debugOutput.getCardsOnTable(objectNode, a.getPlayerIdx(), game);
+                        debugOutput.getCardsOnTable();
                         break;
                     case "getPlayerHero":
-                        debugOutput.getPlayerHero(objectNode, a.getPlayerIdx(), game);
+                        debugOutput.getPlayerHero(a.getPlayerIdx());
                         break;
                     case "getCardAtPosition":
-                        debugOutput.getCardAtPosition(objectNode, a.getX(), a.getY(), game);
+                        debugOutput.getCardAtPosition(a.getX(), a.getY());
                         break;
                     case "getPlayerTurn":
-                        debugOutput.getPlayerTurn(objectNode, game);
+                        debugOutput.getPlayerTurn();
                         break;
                     case "getPlayerMana":
-                        debugOutput.getPlayerMana(objectNode, a.getPlayerIdx(), game);
+                        debugOutput.getPlayerMana(a.getPlayerIdx());
                         break;
                     case "getFrozenCardsOnTable":
-                        debugOutput.getFrozenCardsOnTable(objectNode, game);
+                        debugOutput.getFrozenCardsOnTable();
                         break;
                     case "getTotalGamesPlayed":
-                        debugOutput.getTotalGamesPlayed(objectNode, game);
+                        debugOutput.getTotalGamesPlayed();
                         break;
                     case "getPlayerOneWins":
-                        debugOutput.getPlayerOneWins(objectNode, game);
+                        debugOutput.getPlayerOneWins();
                         break;
                     case "getPlayerTwoWins":
-                        debugOutput.getPlayerTwoWins(objectNode, game);
+                        debugOutput.getPlayerTwoWins();
+                        break;
+                    default:
                         break;
                 }
             }
         }
         objectWriter.writeValue(new File(filePath2), output);
-        System.out.println();
     }
 }

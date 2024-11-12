@@ -1,22 +1,31 @@
-package Output;
+package output;
 
-import Cards.Card;
-import Cards.Minion;
+import cards.Card;
+import cards.Minion;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import Game.Game;
-import fileio.Coordinates;
+import game.Game;
 
 import java.util.ArrayList;
 
+/**
+ * Contains methods for printing debug commands in JSON format
+ */
 public class Debug extends Output {
+    private final Game game;
 
-    public Debug(ArrayNode output, ObjectMapper objectMapper) {
-        super(output, objectMapper);
+    public Debug(final ArrayNode output, final ObjectMapper objectMapper,
+                 final ObjectNode objectNode, final Game game) {
+        super(output, objectMapper, objectNode);
+        this.game = game;
     }
 
-    public void getPlayerDeck(ObjectNode objectNode, int playerIdx, Game game) {
+    /**
+     * Prints the selected player's deck in JSON format
+     * @param playerIdx selected player
+     */
+    public void getPlayerDeck(final int playerIdx) {
         objectNode.put("command", "getPlayerDeck");
         objectNode.put("playerIdx", playerIdx);
         if (playerIdx == 1) {
@@ -27,7 +36,11 @@ public class Debug extends Output {
         output.add(objectNode);
     }
 
-    public void getCardsInHand(ObjectNode objectNode, int playerIdx, Game game) {
+    /**
+     * Prints the selected player's hand in JSON format
+     * @param playerIdx selected player
+     */
+    public void getCardsInHand(final int playerIdx) {
         objectNode.put("command", "getCardsInHand");
         objectNode.put("playerIdx", playerIdx);
         if (playerIdx == 1) {
@@ -38,7 +51,10 @@ public class Debug extends Output {
         output.add(objectNode);
     }
 
-    public void getCardsOnTable(ObjectNode objectNode, int playerIdx, Game game) {
+    /**
+     * Prints the cards on the table in JSON format
+     */
+    public void getCardsOnTable() {
         objectNode.put("command", "getCardsOnTable");
         ArrayNode tableNode = objectMapper.createArrayNode();
         for (ArrayList<Minion> row: game.getBoard()) {
@@ -53,7 +69,11 @@ public class Debug extends Output {
         output.add(objectNode);
     }
 
-    public void getPlayerHero(ObjectNode objectNode, int playerIdx, Game game) {
+    /**
+     * Prints the selected player's hero in JSON format
+     * @param playerIdx selected player
+     */
+    public void getPlayerHero(final int playerIdx) {
         objectNode.put("command", "getPlayerHero");
         objectNode.put("playerIdx", playerIdx);
         if (playerIdx == 1) {
@@ -64,7 +84,12 @@ public class Debug extends Output {
         output.add(objectNode);
     }
 
-    public void getCardAtPosition(ObjectNode objectNode, int x, int y, Game game) {
+    /**
+     * Prints the selected card in JSON format
+     * @param x card's row
+     * @param y card's column
+     */
+    public void getCardAtPosition(final int x, final int y) {
         objectNode.put("command", "getCardAtPosition");
         objectNode.put("x", x);
         objectNode.put("y", y);
@@ -77,13 +102,20 @@ public class Debug extends Output {
         }
     }
 
-    public void getPlayerTurn(ObjectNode objectNode, Game game) {
+    /**
+     * Prints the current player's turn in JSON format
+     */
+    public void getPlayerTurn() {
         objectNode.put("command", "getPlayerTurn");
         objectNode.put("output", game.getCurrentPlayerTurn());
         output.add(objectNode);
     }
 
-    public void getPlayerMana(ObjectNode objectNode, int playerIdx, Game game) {
+    /**
+     * Prints the selected player's mana in JSON format
+     * @param playerIdx selected player
+     */
+    public void getPlayerMana(final int playerIdx) {
         objectNode.put("command", "getPlayerMana");
         objectNode.put("playerIdx", playerIdx);
         if (playerIdx == 1) {
@@ -95,14 +127,17 @@ public class Debug extends Output {
         }
     }
 
-    public void getFrozenCardsOnTable(ObjectNode objectNode, Game game) {
+    /**
+     * Prints the frozen cards on the table in JSON format
+     */
+    public void getFrozenCardsOnTable() {
         objectNode.put("command", "getFrozenCardsOnTable");
         ArrayNode frozenTable = objectMapper.createArrayNode();
         for (ArrayList<Minion> row: game.getBoard()) {
-            for (Card card: row) {
-                if (card.isFrozen()) {
+            for (Minion minion: row) {
+                if (minion.isFrozen()) {
                     ObjectNode cardNode = objectMapper.createObjectNode();
-                    frozenTable.add(card.printCardJSON(cardNode, objectMapper));
+                    frozenTable.add(minion.printCardJSON(cardNode, objectMapper));
                 }
             }
         }
@@ -110,19 +145,28 @@ public class Debug extends Output {
         output.add(objectNode);
     }
 
-    public void getTotalGamesPlayed(ObjectNode objectNode, Game game) {
+    /**
+     * Prints the number of games played in JSON format
+     */
+    public void getTotalGamesPlayed() {
         objectNode.put("command", "getTotalGamesPlayed");
         objectNode.put("output", game.getPlayerOne().getGamesPlayed());
         output.add(objectNode);
     }
 
-    public void getPlayerOneWins(ObjectNode objectNode, Game game) {
+    /**
+     * Prints the number of games won by player one in JSON format
+     */
+    public void getPlayerOneWins() {
         objectNode.put("command", "getPlayerOneWins");
         objectNode.put("output", game.getPlayerOne().getGamesWon());
         output.add(objectNode);
     }
 
-    public void getPlayerTwoWins(ObjectNode objectNode, Game game) {
+    /**
+     * Prints the number of games won by player two in JSON format
+     */
+    public void getPlayerTwoWins() {
         objectNode.put("command", "getPlayerTwoWins");
         objectNode.put("output", game.getPlayerTwo().getGamesWon());
         output.add(objectNode);

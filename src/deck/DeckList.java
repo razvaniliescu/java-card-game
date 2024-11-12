@@ -1,12 +1,11 @@
-package Deck;
+package deck;
 
-import Cards.Card;
 import fileio.CardInput;
 import fileio.DecksInput;
 
 import java.util.ArrayList;
 
-public class DeckList {
+public final class DeckList {
     private int nrCardsInDeck;
     private int nrDecks;
     private ArrayList<Deck> decks;
@@ -15,7 +14,7 @@ public class DeckList {
         return nrCardsInDeck;
     }
 
-    public void setNrCardsInDeck(int nrCardsInDeck) {
+    public void setNrCardsInDeck(final int nrCardsInDeck) {
         this.nrCardsInDeck = nrCardsInDeck;
     }
 
@@ -23,7 +22,7 @@ public class DeckList {
         return nrDecks;
     }
 
-    public void setNrDecks(int nrDecks) {
+    public void setNrDecks(final int nrDecks) {
         this.nrDecks = nrDecks;
     }
 
@@ -31,11 +30,11 @@ public class DeckList {
         return decks;
     }
 
-    public void setDecks(ArrayList<Deck> decks) {
+    public void setDecks(final ArrayList<Deck> decks) {
         this.decks = decks;
     }
 
-    public DeckList(DecksInput decksInput, int playerIdx) {
+    public DeckList(final DecksInput decksInput, final int playerIdx) {
         this.nrCardsInDeck = decksInput.getNrCardsInDeck();
         this.nrDecks = decksInput.getNrDecks();
         this.decks = new ArrayList<Deck>();
