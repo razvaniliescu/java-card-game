@@ -7,11 +7,11 @@ import Cards.Heroes.KingMudface;
 import Cards.Heroes.LordRoyce;
 import Cards.SpecialMinions.Disciple;
 import fileio.Coordinates;
+import lombok.Getter;
 
 import java.util.ArrayList;
 
 public class Game {
-    private int round;
     int manaPerRound;
     private int currentPlayerTurn;
     private int turnsThisRound;
@@ -19,65 +19,32 @@ public class Game {
     private Player playerOne;
     private Player playerTwo;
 
-    public Player getPlayerOne() {
-        return playerOne;
-    }
-
-    public void setPlayerOne(Player playerOne) {
-        this.playerOne = playerOne;
-    }
-
-    public Player getPlayerTwo() {
-        return playerTwo;
-    }
-
-    public void setPlayerTwo(Player playerTwo) {
-        this.playerTwo = playerTwo;
+    public ArrayList<ArrayList<Minion>> getBoard() {
+        return board;
     }
 
     public int getManaPerRound() {
         return manaPerRound;
     }
 
-    public void setManaPerRound(int manaPerRound) {
-        this.manaPerRound = manaPerRound;
+    public int getCurrentPlayerTurn() {
+        return currentPlayerTurn;
     }
 
     public int getTurnsThisRound() {
         return turnsThisRound;
     }
 
-    public void setTurnsThisRound(int turnsThisRound) {
-        this.turnsThisRound = turnsThisRound;
+    public Player getPlayerOne() {
+        return playerOne;
     }
 
-    public int getRound() {
-        return round;
-    }
-
-    public void setRound(int round) {
-        this.round = round;
-    }
-
-    public int getCurrentPlayerTurn() {
-        return currentPlayerTurn;
-    }
-
-    public void setCurrentPlayerTurn(int currentPlayerTurn) {
-        this.currentPlayerTurn = currentPlayerTurn;
-    }
-
-    public ArrayList<ArrayList<Minion>> getBoard() {
-        return board;
-    }
-
-    public void setBoard(ArrayList<ArrayList<Minion>> board) {
-        this.board = board;
+    public Player getPlayerTwo() {
+        return playerTwo;
     }
 
     public Game(int startingPlayerTurn, Player playerOne, Player playerTwo) {
         manaPerRound = 1;
-        round = 1;
         turnsThisRound = 0;
         currentPlayerTurn = startingPlayerTurn;
         board = new ArrayList<>();
@@ -113,7 +80,6 @@ public class Game {
             currentPlayerTurn = 1;
         }
         if (turnsThisRound == 1) {
-            round++;
             turnsThisRound = 0;
             if (manaPerRound < 10) {
                 manaPerRound++;
@@ -143,14 +109,14 @@ public class Game {
     }
 
     public int useAttack(Coordinates cardAttacker, Coordinates cardAttacked) {
-        if (getBoard().get(cardAttacker.getX()).size() <= cardAttacker.getY()) {
+        if (board.get(cardAttacker.getX()).size() <= cardAttacker.getY()) {
             return -1;
         }
-        Minion attacker = getBoard().get(cardAttacker.getX()).get(cardAttacker.getY());
-        if (getBoard().get(cardAttacked.getX()).size() <= cardAttacked.getY()) {
+        Minion attacker = board.get(cardAttacker.getX()).get(cardAttacker.getY());
+        if (board.get(cardAttacked.getX()).size() <= cardAttacked.getY()) {
             return -1;
         }
-        Minion attacked = getBoard().get(cardAttacked.getX()).get(cardAttacked.getY());
+        Minion attacked = board.get(cardAttacked.getX()).get(cardAttacked.getY());
         if (attacker.getPlayerIdx() == attacked.getPlayerIdx()) {
             return 1;
         }
@@ -165,20 +131,20 @@ public class Game {
         }
         attacker.attack(attacked);
         if (attacked.getHealth() <= 0) {
-            getBoard().get(cardAttacked.getX()).remove(attacked);
+            board.get(cardAttacked.getX()).remove(attacked);
         }
         return 0;
     }
 
     public int useAbility(Coordinates cardAttacker, Coordinates cardAttacked) {
-        if (getBoard().get(cardAttacker.getX()).size() <= cardAttacker.getY()) {
+        if (board.get(cardAttacker.getX()).size() <= cardAttacker.getY()) {
             return -1;
         }
-        SpecialMinion attacker = (SpecialMinion) getBoard().get(cardAttacker.getX()).get(cardAttacker.getY());
-        if (getBoard().get(cardAttacked.getX()).size() <= cardAttacked.getY()) {
+        SpecialMinion attacker = (SpecialMinion) board.get(cardAttacker.getX()).get(cardAttacker.getY());
+        if (board.get(cardAttacked.getX()).size() <= cardAttacked.getY()) {
             return -1;
         }
-        Minion attacked = getBoard().get(cardAttacked.getX()).get(cardAttacked.getY());
+        Minion attacked = board.get(cardAttacked.getX()).get(cardAttacked.getY());
         if (attacker.isFrozen()) {
             return 1;
         }
@@ -200,16 +166,16 @@ public class Game {
         attacker.ability(attacked);
         attacker.setAttackedThisTurn(true);
         if (attacked.getHealth() <= 0) {
-            getBoard().get(cardAttacked.getX()).remove(attacked);
+            board.get(cardAttacked.getX()).remove(attacked);
         }
         return 0;
     }
 
     public int attackHero(Coordinates cardAttacker) {
-        if (getBoard().get(cardAttacker.getX()).size() <= cardAttacker.getY()) {
+        if (board.get(cardAttacker.getX()).size() <= cardAttacker.getY()) {
             return -1;
         }
-        Minion attacker = getBoard().get(cardAttacker.getX()).get(cardAttacker.getY());
+        Minion attacker = board.get(cardAttacker.getX()).get(cardAttacker.getY());
         Hero hero = null;
         if (currentPlayerTurn == 1) {
             hero = playerTwo.getHero();
@@ -229,12 +195,13 @@ public class Game {
             } else if (currentPlayerTurn == 2) {
                 x = 2;
             }
-            for (Minion card : getBoard().get(x)) {
+            for (Minion card : board.get(x)) {
                 if (card instanceof Tank) {
                     return 3;
                 }
             }
         }
+        assert hero != null;
         attacker.attack(hero);
         if (hero.getHealth() <= 0) {
             if (currentPlayerTurn == 1) {
@@ -255,6 +222,7 @@ public class Game {
         } else if (currentPlayerTurn == 2) {
             player = playerTwo;
         }
+        assert player != null;
         Hero hero = player.getHero();
         if (player.getMana() < hero.getMana()) {
             return 1;
@@ -283,7 +251,7 @@ public class Game {
                 }
             }
         }
-        hero.ability(getBoard().get(row));
+        hero.ability(board.get(row));
         player.setMana(player.getMana() - hero.getMana());
         hero.setAttackedThisTurn(true);
         return 0;
