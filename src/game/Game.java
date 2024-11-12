@@ -5,11 +5,12 @@ import cards.heroes.EmpressThorina;
 import cards.heroes.GeneralKocioraw;
 import cards.heroes.KingMudface;
 import cards.heroes.LordRoyce;
-import cards.specialMinions.Disciple;
 import fileio.CardInput;
 import fileio.Coordinates;
+import static constants.Constants.*;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Handles game elements
@@ -21,7 +22,6 @@ public class Game {
     private final ArrayList<ArrayList<Minion>> board;
     private final Player playerOne;
     private final Player playerTwo;
-
     /**
      * Gets the board
      */
@@ -69,8 +69,7 @@ public class Game {
         turnsThisRound = 0;
         currentPlayerTurn = startingPlayerTurn;
         board = new ArrayList<>();
-        final int rows = 4;
-        for (int i = 0; i < rows; i++) {
+        for (int i = 0; i < BOARD_ROWS; i++) {
             board.add(new ArrayList<>());
         }
         this.playerOne = playerOne;
@@ -95,16 +94,12 @@ public class Game {
      * Advances the game to the next turn
      */
     public boolean switchTurn() {
-        final int secondRowIndex = 1;
-        final int thirdRowIndex = 2;
-        final int fourthRowIndex = 3;
-        final int maxMana = 10;
         if (currentPlayerTurn == 1) {
-            for (Minion card : board.get(thirdRowIndex)) {
+            for (Minion card : board.get(THIRD_ROW_INDEX)) {
                 card.setFrozen(false);
                 card.setAttackedThisTurn(false);
             }
-            for (Minion card : board.get(fourthRowIndex)) {
+            for (Minion card : board.get(FOURTH_ROW_INDEX)) {
                 card.setFrozen(false);
                 card.setAttackedThisTurn(false);
             }
@@ -115,7 +110,7 @@ public class Game {
                 card.setFrozen(false);
                 card.setAttackedThisTurn(false);
             }
-            for (Minion card : board.get(secondRowIndex)) {
+            for (Minion card : board.get(SECOND_ROW_INDEX)) {
                 card.setFrozen(false);
                 card.setAttackedThisTurn(false);
             }
@@ -124,7 +119,7 @@ public class Game {
         }
         if (turnsThisRound == 1) {
             turnsThisRound = 0;
-            if (manaPerRound < maxMana) {
+            if (manaPerRound < MAX_MANA_PER_ROUND) {
                 manaPerRound++;
             }
             return true;
@@ -139,14 +134,16 @@ public class Game {
      */
     public boolean checkForTanks(final int playerIdx) {
         if (playerIdx == 1) {
-            for (Minion card : board.get(1)) {
-                if (card instanceof Tank) {
+            for (Minion card : board.get(SECOND_ROW_INDEX)) {
+                if (Objects.equals(card.getName(), "Goliath")
+                        || Objects.equals(card.getName(), "Warden")) {
                     return true;
                 }
             }
         } else if (playerIdx == 2) {
-            for (Minion card : board.get(2)) {
-                if (card instanceof Tank) {
+            for (Minion card : board.get(THIRD_ROW_INDEX)) {
+                if (Objects.equals(card.getName(), "Goliath")
+                        || Objects.equals(card.getName(), "Warden")) {
                     return true;
                 }
             }
@@ -162,21 +159,19 @@ public class Game {
     public int useAttack(final Coordinates cardAttacker, final Coordinates cardAttacked) {
         Minion attacker = board.get(cardAttacker.getX()).get(cardAttacker.getY());
         Minion attacked = board.get(cardAttacked.getX()).get(cardAttacked.getY());
-        final int attackedCardIsFriendly = 1;
-        final int cardAlreadyAttacked = 2;
-        final int cardIsFrozen = 3;
-        final int attackedCardIsNotTank = 4;
+        if (attacked.isFrozen()) {
+            return CARD_IS_FROZEN;
+        }
         if (attacker.getPlayerIdx() == attacked.getPlayerIdx()) {
-            return attackedCardIsFriendly;
+            return ATTACKED_CARD_IS_FRIENDLY;
         }
         if (attacker.isAttackedThisTurn()) {
-            return cardAlreadyAttacked;
+            return CARD_ALREADY_ATTACKED;
         }
-        if (attacked.isFrozen()) {
-            return cardIsFrozen;
-        }
-        if (checkForTanks(attacker.getPlayerIdx()) && !(attacked instanceof Tank)) {
-            return attackedCardIsNotTank;
+        if (checkForTanks(attacker.getPlayerIdx())
+                && !(Objects.equals(attacked.getName(), "Goliath")
+                || Objects.equals(attacked.getName(), "Warden"))) {
+            return ATTACKED_CARD_IS_NOT_TANK;
         }
         attacker.attack(attacked);
         if (attacked.getHealth() <= 0) {
@@ -193,27 +188,24 @@ public class Game {
     public int useAbility(final Coordinates cardAttacker, final Coordinates cardAttacked) {
         SpecialMinion attacker = (SpecialMinion) board.get(cardAttacker.getX()).get(cardAttacker.getY());
         Minion attacked = board.get(cardAttacked.getX()).get(cardAttacked.getY());
-        final int cardIsFrozen = 1;
-        final int cardAlreadyAttacked = 2;
-        final int attackedCardIsNotFriendly = 3;
-        final int attackedCardIsFriendly = 4;
-        final int attackedCardIsNotTank = 5;
         if (attacker.isFrozen()) {
-            return cardIsFrozen;
+            return CARD_IS_FROZEN;
         }
         if (attacker.isAttackedThisTurn()) {
-            return cardAlreadyAttacked;
+            return CARD_ALREADY_ATTACKED;
         }
-        if (attacker instanceof Disciple) {
+        if (Objects.equals(attacker.getName(), "Disciple")) {
             if (attacker.getPlayerIdx() != attacked.getPlayerIdx()) {
-                return attackedCardIsNotFriendly;
+                return ATTACKED_CARD_IS_NOT_FRIENDLY;
             }
         } else {
             if (attacker.getPlayerIdx() == attacked.getPlayerIdx()) {
-                return attackedCardIsFriendly;
+                return ATTACKED_CARD_IS_FRIENDLY;
             }
-            if (checkForTanks(attacker.getPlayerIdx()) && !(attacked instanceof Tank)) {
-                return attackedCardIsNotTank;
+            if (checkForTanks(attacker.getPlayerIdx())
+                    && !(Objects.equals(attacked.getName(), "Goliath")
+                    || Objects.equals(attacked.getName(), "Warden"))) {
+                return ATTACKED_CARD_IS_NOT_TANK;
             }
         }
         attacker.ability(attacked);
@@ -235,17 +227,14 @@ public class Game {
             case 2 -> playerOne.getHero();
             default -> null;
         };
-        final int cardIsFrozen = 1;
-        final int cardAlreadyAttacked = 2;
-        final int mustAttackTankFirst = 3;
         if (attacker.isFrozen()) {
-            return cardIsFrozen;
+            return CARD_IS_FROZEN;
         }
         if (attacker.isAttackedThisTurn()) {
-            return cardAlreadyAttacked;
+            return CARD_ALREADY_ATTACKED;
         }
         if (checkForTanks(attacker.getPlayerIdx())) {
-            return mustAttackTankFirst;
+            return ATTACKED_CARD_IS_NOT_TANK;
         }
         assert hero != null;
         attacker.attack(hero);
@@ -273,40 +262,32 @@ public class Game {
         };
         assert player != null;
         Hero hero = player.getHero();
-
-        final int firstRowIndex = 0;
-        final int secondRowIndex = 1;
-        final int thirdRowIndex = 2;
-        final int fourthRowIndex = 3;
-
-        final int notEnoughMana = 1;
-        final int heroAlreadyUsedAbility = 2;
-        final int selectedRowIsFriendly = 3;
-        final int selectedRowIsNotFriendly = 4;
         if (player.getMana() < hero.getMana()) {
-            return notEnoughMana;
+            return NOT_ENOUGH_MANA;
         }
         if (hero.isAttackedThisTurn()) {
-            return heroAlreadyUsedAbility;
+            return HERO_ALREADY_USED_ABILITY;
         }
-        if ((hero instanceof LordRoyce) || (hero instanceof EmpressThorina)) {
+        if ((Objects.equals(hero.getName(), "Lord Royce"))
+                || (Objects.equals(hero.getName(), "Empress Thorina"))) {
             if (currentPlayerTurn == 1) {
-                if (row == thirdRowIndex || row == fourthRowIndex) {
-                    return selectedRowIsFriendly;
+                if (row == THIRD_ROW_INDEX || row == FOURTH_ROW_INDEX) {
+                    return SELECTED_ROW_IS_FRIENDLY;
                 }
             } else if (currentPlayerTurn == 2) {
-                if (row == firstRowIndex || row == secondRowIndex) {
-                    return selectedRowIsFriendly;
+                if (row == FIRST_ROW_INDEX || row == SECOND_ROW_INDEX) {
+                    return SELECTED_ROW_IS_FRIENDLY;
                 }
             }
-        } else if ((hero instanceof KingMudface) || (hero instanceof GeneralKocioraw)) {
+        } else if ((Objects.equals(hero.getName(), "King Mudface"))
+                || (Objects.equals(hero.getName(), "General Kocioraw"))) {
             if (currentPlayerTurn == 1) {
-                if (row == firstRowIndex || row == secondRowIndex) {
-                    return selectedRowIsNotFriendly;
+                if (row == FIRST_ROW_INDEX || row == SECOND_ROW_INDEX) {
+                    return SELECTED_ROW_IS_NOT_FRIENDLY;
                 }
             } else if (currentPlayerTurn == 2) {
-                if (row == thirdRowIndex || row == fourthRowIndex) {
-                    return selectedRowIsNotFriendly;
+                if (row == THIRD_ROW_INDEX || row == FOURTH_ROW_INDEX) {
+                    return SELECTED_ROW_IS_NOT_FRIENDLY;
                 }
             }
         }

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.Coordinates;
 
+import static constants.Constants.*;
+
 /**
  * Contains methods for printing errors in JSON format
  */
@@ -20,14 +22,10 @@ public class Error extends Output {
     public void placeCardError(final int error, final int handIdx) {
         objectNode.put("command", "placeCard");
         objectNode.put("handIdx", handIdx);
-        switch (error) {
-            case 1: objectNode.put("error",
-                    "Not enough mana to place card on table.");
-                break;
-            case 2: objectNode.put("error",
-                    "Cannot place card on table since row is full.");
-                break;
-            default: break;
+        if (error == NOT_ENOUGH_MANA) {
+            objectNode.put("error", "Not enough mana to place card on table.");
+        } else if (error == TOO_MANY_MINIONS_ON_ROW) {
+            objectNode.put("error", "Cannot place card on table since row is full.");
         }
         output.add(objectNode);
     }
@@ -46,24 +44,14 @@ public class Error extends Output {
         coordNodeAttacked.put("x", attackedCoords.getX());
         coordNodeAttacked.put("y", attackedCoords.getY());
         objectNode.set("cardAttacked", coordNodeAttacked);
-        final int attackedCardIsFriendly = 1;
-        final int cardAlreadyAttacked = 2;
-        final int cardIsFrozen = 3;
-        final int attackedCardIsNotTank = 4;
-        switch (error) {
-            case attackedCardIsFriendly: objectNode.put("error",
-                    "Attacked card does not belong to the enemy.");
-                break;
-            case cardAlreadyAttacked: objectNode.put("error",
-                    "Attacker card has already attacked this turn.");
-                break;
-            case cardIsFrozen: objectNode.put("error",
-                    "Attacker card is frozen.");
-                break;
-            case attackedCardIsNotTank: objectNode.put("error",
-                    "Attacked card is not of type 'Tank'.");
-                break;
-            default: break;
+        if (error == CARD_IS_FROZEN) {
+            objectNode.put("error", "Attacker card is frozen.");
+        } else if (error == CARD_ALREADY_ATTACKED) {
+            objectNode.put("error", "Attacker card has already attacked this turn.");
+        } else if (error == ATTACKED_CARD_IS_FRIENDLY) {
+            objectNode.put("error", "Attacked card does not belong to the enemy.");
+        } else if (error == ATTACKED_CARD_IS_NOT_TANK) {
+            objectNode.put("error", "Attacked card is not of type 'Tank'.");
         }
         output.add(objectNode);
     }
@@ -82,28 +70,16 @@ public class Error extends Output {
         coordNodeAttacked.put("x", attackedCoords.getX());
         coordNodeAttacked.put("y", attackedCoords.getY());
         objectNode.set("cardAttacked", coordNodeAttacked);
-        final int cardIsFrozen = 1;
-        final int cardAlreadyAttacked = 2;
-        final int attackedCardIsNotFriendly = 3;
-        final int attackedCardIsFriendly = 4;
-        final int attackedCardIsNotTank = 5;
-        switch (error) {
-            case cardIsFrozen: objectNode.put("error",
-                    "Attacker card is frozen.");
-                break;
-            case cardAlreadyAttacked: objectNode.put("error",
-                    "Attacker card has already attacked this turn.");
-                break;
-            case attackedCardIsNotFriendly: objectNode.put("error",
-                    "Attacked card does not belong to the current player.");
-                break;
-            case attackedCardIsFriendly: objectNode.put("error",
-                    "Attacked card does not belong to the enemy.");
-                break;
-            case attackedCardIsNotTank: objectNode.put("error",
-                    "Attacked card is not of type 'Tank'.");
-                break;
-            default: break;
+        if (error == CARD_IS_FROZEN) {
+            objectNode.put("error", "Attacker card is frozen.");
+        } else if (error == CARD_ALREADY_ATTACKED) {
+            objectNode.put("error", "Attacker card has already attacked this turn.");
+        } else if (error == ATTACKED_CARD_IS_FRIENDLY) {
+            objectNode.put("error", "Attacked card does not belong to the enemy.");
+        } else if (error == ATTACKED_CARD_IS_NOT_FRIENDLY) {
+            objectNode.put("error", "Attacked card does not belong to the current player.");
+        } else if (error == ATTACKED_CARD_IS_NOT_TANK) {
+            objectNode.put("error", "Attacked card is not of type 'Tank'.");
         }
         output.add(objectNode);
     }
@@ -117,20 +93,12 @@ public class Error extends Output {
         coordNodeAttacker.put("x", attackerCoords.getX());
         coordNodeAttacker.put("y", attackerCoords.getY());
         objectNode.set("cardAttacker", coordNodeAttacker);
-        final int cardIsFrozen = 1;
-        final int cardAlreadyAttacked = 2;
-        final int mustAttackTankFirst = 3;
-        switch (error) {
-            case cardIsFrozen: objectNode.put("error",
-                    "Attacker card is frozen.");
-                break;
-            case cardAlreadyAttacked: objectNode.put("error",
-                    "Attacker card has already attacked this turn.");
-                break;
-            case mustAttackTankFirst: objectNode.put("error",
-                    "Attacked card is not of type 'Tank'.");
-                break;
-            default: break;
+        if (error == CARD_IS_FROZEN) {
+            objectNode.put("error", "Attacker card is frozen.");
+        } else if (error == CARD_ALREADY_ATTACKED) {
+            objectNode.put("error", "Attacker card has already attacked this turn.");
+        } else if (error == ATTACKED_CARD_IS_NOT_TANK) {
+            objectNode.put("error", "Attacked card is not of type 'Tank'.");
         }
         output.add(objectNode);
     }
@@ -141,24 +109,14 @@ public class Error extends Output {
     public void useHeroAbilityError(final int error, final int row) {
         objectNode.put("command", "useHeroAbility");
         objectNode.put("affectedRow", row);
-        final int notEnoughMana = 1;
-        final int heroAlreadyUsedAbility = 2;
-        final int selectedRowIsFriendly = 3;
-        final int selectedRowIsNotFriendly = 4;
-        switch (error) {
-            case notEnoughMana: objectNode.put("error",
-                    "Not enough mana to use hero's ability.");
-                break;
-            case heroAlreadyUsedAbility: objectNode.put("error",
-                    "Hero has already attacked this turn.");
-                break;
-            case selectedRowIsFriendly: objectNode.put("error",
-                    "Selected row does not belong to the enemy.");
-                break;
-            case selectedRowIsNotFriendly: objectNode.put("error",
-                    "Selected row does not belong to the current player.");
-                break;
-            default: break;
+        if (error == NOT_ENOUGH_MANA) {
+            objectNode.put("error", "Not enough mana to use hero's ability.");
+        } else if (error == HERO_ALREADY_USED_ABILITY) {
+            objectNode.put("error", "Hero has already attacked this turn.");
+        } else if (error == SELECTED_ROW_IS_FRIENDLY) {
+            objectNode.put("error", "Selected row does not belong to the enemy.");
+        } else if (error == SELECTED_ROW_IS_NOT_FRIENDLY) {
+            objectNode.put("error", "Selected row does not belong to the current player.");
         }
         output.add(objectNode);
     }

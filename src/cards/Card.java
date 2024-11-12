@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.CardInput;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Parent class for all types of cards
@@ -152,7 +153,10 @@ public class Card {
         ObjectNode cardNode = objectMapper.createObjectNode();
         cardNode.put("mana", mana);
         cardNode.put("description", description);
-        if (!(this instanceof Hero)) {
+        if (!(Objects.equals(this.name, "Lord Royce")
+                || Objects.equals(this.name, "Empress Thorina")
+                || Objects.equals(this.name, "King Mudface")
+                || Objects.equals(this.name, "General Kocioraw"))) {
             cardNode.put("attackDamage", attackDamage);
         }
         ArrayNode colorNode = objectMapper.createArrayNode();

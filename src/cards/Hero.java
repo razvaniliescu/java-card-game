@@ -3,6 +3,7 @@ package cards;
 import fileio.CardInput;
 
 import java.util.ArrayList;
+import static constants.Constants.*;
 
 /**
  * Card subclass for the hero type
@@ -10,8 +11,7 @@ import java.util.ArrayList;
 public class Hero extends Card {
     public Hero(final CardInput hero, final int playerIdx) {
         super(hero, playerIdx);
-        final int initialHealth = 30;
-        setHealth(initialHealth);
+        setHealth(INITIAL_HERO_HEALTH);
     }
 
     /**

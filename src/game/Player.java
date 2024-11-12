@@ -5,6 +5,7 @@ import cards.Minion;
 import deck.DeckList;
 import deck.Deck;
 import fileio.DecksInput;
+import static constants.Constants.*;
 
 /**
  * Contains information about the player
@@ -158,35 +159,25 @@ public class Player {
      */
     public int placeCard(final int handIndex, final Game game) {
         Minion card = hand.getCards().get(handIndex);
-        final int maxMinionsOnRow = 5;
-
-        final int firstRowIndex = 0;
-        final int secondRowIndex = 1;
-        final int thirdRowIndex = 2;
-        final int fourthRowIndex = 3;
-
-        final int notEnoughMana = 1;
-        final int tooManyMinionsOnRow = 2;
-
         if (mana < card.getMana()) {
-            return notEnoughMana;
+            return NOT_ENOUGH_MANA;
         } else {
             int cardRow = -1;
             if (playerIdx == 1) {
                 if (card.isFrontRow()) {
-                    cardRow = thirdRowIndex;
+                    cardRow = THIRD_ROW_INDEX;
                 } else {
-                    cardRow = fourthRowIndex;
+                    cardRow = FOURTH_ROW_INDEX;
                 }
             } else if (playerIdx == 2) {
                 if (card.isFrontRow()) {
-                    cardRow = secondRowIndex;
+                    cardRow = SECOND_ROW_INDEX;
                 } else {
-                    cardRow = firstRowIndex;
+                    cardRow = FIRST_ROW_INDEX;
                 }
             }
-            if (game.getBoard().get(cardRow).size() >= maxMinionsOnRow) {
-                return tooManyMinionsOnRow;
+            if (game.getBoard().get(cardRow).size() >= MAX_MINIONS_ON_ROW) {
+                return TOO_MANY_MINIONS_ON_ROW;
             }
             hand.getCards().remove(card);
             hand.setSize(hand.getSize() - 1);

@@ -1,11 +1,15 @@
 Picked up _JAVA_OPTIONS: -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true
 Starting audit...
+[ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/cards/Hero.java:6:34: Using the '.*' form of import should be avoided - constants.Constants.*. [AvoidStarImport]
 [ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/main/Main.java:15:14: Using the '.*' form of import should be avoided - fileio.*. [AvoidStarImport]
 [ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/main/Main.java:106: Line is longer than 100 characters (found 101). [LineLength]
 [ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/main/Main.java:107: Line is longer than 100 characters (found 101). [LineLength]
 [ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/game/Game.java:3:13: Using the '.*' form of import should be avoided - cards.*. [AvoidStarImport]
-[ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/game/Game.java:194: Line is longer than 100 characters (found 105). [LineLength]
+[ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/game/Game.java:10:34: Using the '.*' form of import should be avoided - constants.Constants.*. [AvoidStarImport]
+[ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/game/Game.java:189: Line is longer than 100 characters (found 105). [LineLength]
+[ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/game/Player.java:8:34: Using the '.*' form of import should be avoided - constants.Constants.*. [AvoidStarImport]
 [ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/deck/Deck.java:3:13: Using the '.*' form of import should be avoided - cards.*. [AvoidStarImport]
 [ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/output/Output.java:15: Line is longer than 100 characters (found 105). [LineLength]
+[ERROR] /home/razvanica/Anu2/Sem1/POO/tema0/./src/output/Error.java:8:34: Using the '.*' form of import should be avoided - constants.Constants.*. [AvoidStarImport]
 Audit done.
-Checkstyle ends with 7 errors.
+Checkstyle ends with 11 errors.
