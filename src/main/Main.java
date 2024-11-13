@@ -74,23 +74,29 @@ public final class Main {
     public static void action(final String filePath1,
                               final String filePath2) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        // Extract the input from JSON format
         Input inputData = objectMapper.readValue(new File(CheckerConstants.TESTS_PATH + filePath1),
                 Input.class);
 
+        // Initiate object mapper and array node output
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         ArrayNode output = objectMapper.createArrayNode();
 
+        // Get the deck list for each player
         DecksInput playerOneDecks = inputData.getPlayerOneDecks();
         DecksInput playerTwoDecks = inputData.getPlayerTwoDecks();
 
+        // Initiate the two players
         Player playerOne = new Player(playerOneDecks, 1);
         Player playerTwo = new Player(playerTwoDecks, 2);
-        ArrayList<GameInput> gameInput = inputData.getGames();
 
+        // Extract info about each game
+        ArrayList<GameInput> gameInput = inputData.getGames();
         for (GameInput g : gameInput) {
             ArrayList<ActionsInput> actionsInput = g.getActions();
             Game game = new Game(g.getStartGame().getStartingPlayer(), playerOne, playerTwo);
 
+            // Set the two players' heroes, mana, deck and hand before each game
             game.initHero(g.getStartGame().getPlayerOneHero(), playerOne);
             game.initHero(g.getStartGame().getPlayerTwoHero(), playerTwo);
 
@@ -106,6 +112,7 @@ public final class Main {
             playerOne.setCurrentDeck(new Deck(playerOneDecks.getDecks().get(playerOneDeckIndex), 1));
             playerTwo.setCurrentDeck(new Deck(playerTwoDecks.getDecks().get(playerTwoDeckIndex), 2));
 
+            // Shuffle the decks and start drawing
             Random random = new Random(g.getStartGame().getShuffleSeed());
             shuffle(playerOne.getCurrentDeck().getCards(), random);
             random = new Random(g.getStartGame().getShuffleSeed());
@@ -114,6 +121,7 @@ public final class Main {
             playerOne.drawCard();
             playerTwo.drawCard();
 
+            // Evaluate each command
             for (ActionsInput a : actionsInput) {
                 ObjectNode objectNode = objectMapper.createObjectNode();
                 Error errorOutput = new Error(output, objectMapper, objectNode);
@@ -216,6 +224,7 @@ public final class Main {
                 }
             }
         }
+        // Write the array node in the output file
         objectWriter.writeValue(new File(filePath2), output);
     }
 }
